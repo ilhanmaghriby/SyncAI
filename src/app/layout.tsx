@@ -15,6 +15,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "SyncAI",
   description: "SyncAI - Your AI Assistant",
+  icons: {
+    icon: "/logo.png",
+  },
 };
 
 export default function RootLayout({
