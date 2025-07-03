@@ -14,6 +14,15 @@ export default function Home() {
   // Inisialisasi Gemini dengan API Key
   const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY!);
 
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleExampleClick = (text: string) => {
+    setInput(text);
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 0);
+  };
+
   // Markdown parser sederhana
   const parseMarkdown = (text: string) => {
     return text
@@ -108,13 +117,32 @@ export default function Home() {
                 Ask me anything, from creative ideas to technical explanations.
               </p>
               <div className="grid grid-cols-1 gap-3 text-sm">
-                <div className="p-3 bg-white rounded-lg border border-gray-200 hover:border-indigo-300 cursor-pointer transition-colors shadow-xs">
+                <div
+                  className="p-3 bg-white rounded-lg border border-gray-200 hover:border-indigo-300 cursor-pointer transition-colors shadow-xs"
+                  onClick={() =>
+                    handleExampleClick(
+                      "Explain quantum computing in simple terms"
+                    )
+                  }
+                >
                   "Explain quantum computing in simple terms"
                 </div>
-                <div className="p-3 bg-white rounded-lg border border-gray-200 hover:border-indigo-300 cursor-pointer transition-colors shadow-xs">
+                <div
+                  className="p-3 bg-white rounded-lg border border-gray-200 hover:border-indigo-300 cursor-pointer transition-colors shadow-xs"
+                  onClick={() =>
+                    handleExampleClick(
+                      "Suggest some team-building activities for remote teams"
+                    )
+                  }
+                >
                   "Suggest some team-building activities for remote teams"
                 </div>
-                <div className="p-3 bg-white rounded-lg border border-gray-200 hover:border-indigo-300 cursor-pointer transition-colors shadow-xs">
+                <div
+                  className="p-3 bg-white rounded-lg border border-gray-200 hover:border-indigo-300 cursor-pointer transition-colors shadow-xs"
+                  onClick={() =>
+                    handleExampleClick("Help me debug this Python code...")
+                  }
+                >
                   "Help me debug this Python code..."
                 </div>
               </div>
@@ -214,6 +242,7 @@ export default function Home() {
         <div className="max-w-4xl mx-auto">
           <form onSubmit={handleSubmit} className="flex space-x-3">
             <input
+              ref={inputRef}
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -221,6 +250,7 @@ export default function Home() {
               className="flex-1 border border-gray-300 rounded-full px-5 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent shadow-sm"
               disabled={isLoading}
             />
+
             <button
               type="submit"
               className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-5 py-3 rounded-full hover:from-blue-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 transition-all duration-200 shadow-md flex items-center justify-center"
