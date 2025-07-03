@@ -90,7 +90,7 @@ export default function Home() {
       </header>
 
       {/* Chat container */}
-      <div className="flex-1 overflow-y-auto p-4 pb-20 max-w-4xl w-full mx-auto">
+      <div className="flex-1 overflow-y-auto p-4  max-w-4xl w-full mx-auto">
         {messages.length === 0 ? (
           <div className="flex items-center justify-center text-gray-500">
             <div className="text-center max-w-md p-6 sm:p-8 rounded-xl bg-white/70 backdrop-blur-sm border border-gray-200 shadow-sm">
