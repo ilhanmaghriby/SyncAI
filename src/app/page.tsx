@@ -1,6 +1,7 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import Image from "next/image";
 
 export default function Home() {
   const [messages, setMessages] = useState<
@@ -65,10 +66,12 @@ export default function Home() {
       <header className="bg-white shadow-sm py-4 px-6 sticky top-0 z-10">
         <div className="max-w-4xl mx-auto flex items-center">
           <div className="w-10 h-10 mr-3">
-            <img
+            <Image
               src="/logo.png"
               alt="Logo"
-              className="w-full h-full object-contain rounded-full bg-white p-1 shadow-md"
+              width={100}
+              height={100}
+              className="object-contain rounded-full bg-white p-1 shadow-md"
             />
           </div>
           <div>
@@ -82,10 +85,10 @@ export default function Home() {
       <div className="flex-1 overflow-y-auto p-4 pb-20 max-w-4xl w-full mx-auto">
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-gray-500">
-            <div className="text-center max-w-md p-6 rounded-xl bg-white/50 backdrop-blur-sm">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-r from-blue-100 to-indigo-100 flex items-center justify-center">
+            <div className="text-center max-w-md p-8 rounded-xl bg-white/70 backdrop-blur-sm border border-gray-200 shadow-sm">
+              <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-r from-blue-100 to-indigo-100 flex items-center justify-center shadow-inner">
                 <svg
-                  className="h-8 w-8 text-indigo-500"
+                  className="h-10 w-10 text-indigo-500"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -93,24 +96,27 @@ export default function Home() {
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    strokeWidth={2}
+                    strokeWidth={1.5}
                     d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
                   />
                 </svg>
               </div>
-              <h2 className="text-xl font-semibold mb-2 text-gray-700">
+              <h2 className="text-2xl font-bold mb-3 text-gray-800">
                 Welcome to SyncAI
               </h2>
-              <p className="text-gray-600 mb-4">
-                Start chatting with our AI assistant powered by Gemini.
+              <p className="text-gray-600 mb-6">
+                Ask me anything, from creative ideas to technical explanations.
               </p>
-              <div className="text-xs text-gray-400">
-                <p>Try asking:</p>
-                <p className="mt-1">
+              <div className="grid grid-cols-1 gap-3 text-sm">
+                <div className="p-3 bg-white rounded-lg border border-gray-200 hover:border-indigo-300 cursor-pointer transition-colors shadow-xs">
                   "Explain quantum computing in simple terms"
-                </p>
-                <p>or</p>
-                <p>"What's the weather like today?"</p>
+                </div>
+                <div className="p-3 bg-white rounded-lg border border-gray-200 hover:border-indigo-300 cursor-pointer transition-colors shadow-xs">
+                  "Suggest some team-building activities for remote teams"
+                </div>
+                <div className="p-3 bg-white rounded-lg border border-gray-200 hover:border-indigo-300 cursor-pointer transition-colors shadow-xs">
+                  "Help me debug this Python code..."
+                </div>
               </div>
             </div>
           </div>
