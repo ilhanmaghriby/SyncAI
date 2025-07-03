@@ -10,28 +10,23 @@ export default function Home() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  // Inisialisasi Gemini dengan API Key
   const genAI = new GoogleGenerativeAI(
     "AIzaSyCHA_EC2KMCjfhzgQW90UjjQyUPKUlTS7s"
   );
 
-  const inputRef = useRef<HTMLInputElement>(null);
-
   const handleExampleClick = (text: string) => {
     setInput(text);
-    setTimeout(() => {
-      inputRef.current?.focus();
-    }, 0);
+    setTimeout(() => inputRef.current?.focus(), 0);
   };
 
-  // Markdown parser sederhana
   const parseMarkdown = (text: string) => {
     return text
-      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>") // Bold
-      .replace(/\*(.*?)\*/g, "<em>$1</em>") // Italic
-      .replace(/`([^`]+)`/g, "<code>$1</code>") // Inline code
-      .replace(/\n/g, "<br/>"); // Line break
+      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+      .replace(/\*(.*?)\*/g, "<em>$1</em>")
+      .replace(/`([^`]+)`/g, "<code>$1</code>")
+      .replace(/\n/g, "<br/>");
   };
 
   const scrollToBottom = () => {
@@ -58,7 +53,7 @@ export default function Home() {
       const text = response.text();
       setMessages((prev) => [...prev, { role: "model", content: text }]);
     } catch (error) {
-      console.error("Error calling Gemini API:", error);
+      console.error("Error:", error);
       setMessages((prev) => [
         ...prev,
         {
@@ -74,7 +69,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col">
       {/* Header */}
-      <header className="bg-white shadow-sm py-4 px-6 sticky top-0 z-10">
+      <header className="bg-white shadow-sm py-3 px-4 sm:py-4 sm:px-6 sticky top-0 z-10">
         <div className="max-w-4xl mx-auto flex items-center">
           <div className="w-10 h-10 mr-3">
             <Image
@@ -86,7 +81,9 @@ export default function Home() {
             />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-800">SyncAI</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-800">
+              SyncAI
+            </h1>
             <p className="text-xs text-gray-500">Powered by Gemini</p>
           </div>
         </div>
@@ -95,11 +92,11 @@ export default function Home() {
       {/* Chat container */}
       <div className="flex-1 overflow-y-auto p-4 pb-20 max-w-4xl w-full mx-auto">
         {messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-gray-500">
-            <div className="text-center max-w-md p-8 rounded-xl bg-white/70 backdrop-blur-sm border border-gray-200 shadow-sm">
-              <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-r from-blue-100 to-indigo-100 flex items-center justify-center shadow-inner">
+          <div className="flex items-center justify-center text-gray-500">
+            <div className="text-center max-w-md p-6 sm:p-8 rounded-xl bg-white/70 backdrop-blur-sm border border-gray-200 shadow-sm">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-6 rounded-full bg-gradient-to-r from-blue-100 to-indigo-100 flex items-center justify-center shadow-inner">
                 <svg
-                  className="h-10 w-10 text-indigo-500"
+                  className="h-8 w-8 sm:h-10 sm:w-10 text-indigo-500"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -112,44 +109,26 @@ export default function Home() {
                   />
                 </svg>
               </div>
-              <h2 className="text-2xl font-bold mb-3 text-gray-800">
+              <h2 className="text-xl sm:text-2xl font-bold mb-3 text-gray-800">
                 Welcome to SyncAI
               </h2>
-              <p className="text-gray-600 mb-6">
+              <p className="text-gray-600 mb-6 text-sm">
                 Ask me anything, from creative ideas to technical explanations.
               </p>
-              <div className="grid grid-cols-1 gap-3 text-sm">
-                <div className="grid grid-cols-1 gap-3 text-sm">
+              <div className="grid grid-cols-1  gap-3 text-sm">
+                {[
+                  "Explain quantum computing in simple terms",
+                  "Suggest some team-building activities for remote teams",
+                  "Help me debug this Python code...",
+                ].map((example, i) => (
                   <div
+                    key={i}
                     className="p-3 bg-white rounded-lg border border-gray-200 hover:border-indigo-300 cursor-pointer transition-colors shadow-xs"
-                    onClick={() =>
-                      handleExampleClick(
-                        "Explain quantum computing in simple terms"
-                      )
-                    }
+                    onClick={() => handleExampleClick(example)}
                   >
-                    &ldquo;Explain quantum computing in simple terms&rdquo;
+                    &ldquo;{example}&rdquo;
                   </div>
-                  <div
-                    className="p-3 bg-white rounded-lg border border-gray-200 hover:border-indigo-300 cursor-pointer transition-colors shadow-xs"
-                    onClick={() =>
-                      handleExampleClick(
-                        "Suggest some team-building activities for remote teams"
-                      )
-                    }
-                  >
-                    &ldquo;Suggest some team-building activities for remote
-                    teams&rdquo;
-                  </div>
-                  <div
-                    className="p-3 bg-white rounded-lg border border-gray-200 hover:border-indigo-300 cursor-pointer transition-colors shadow-xs"
-                    onClick={() =>
-                      handleExampleClick("Help me debug this Python code...")
-                    }
-                  >
-                    &ldquo;Help me debug this Python code...&rdquo;
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
           </div>
@@ -163,11 +142,11 @@ export default function Home() {
                 }`}
               >
                 <div
-                  className={`max-w-3/4 rounded-xl px-4 py-3 ${
+                  className={`rounded-xl px-4 py-3 ${
                     message.role === "user"
                       ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-br-none"
                       : "bg-white text-gray-800 shadow-sm rounded-bl-none"
-                  }`}
+                  } max-w-[85%] sm:max-w-[70%] md:max-w-[60%]`}
                 >
                   {message.role === "model" && (
                     <div className="flex items-center mb-1">
@@ -205,7 +184,7 @@ export default function Home() {
             ))}
             {isLoading && (
               <div className="flex justify-start">
-                <div className="bg-white text-gray-800 rounded-xl px-4 py-3 shadow-sm rounded-bl-none max-w-xs">
+                <div className="bg-white text-gray-800 rounded-xl px-4 py-3 shadow-sm rounded-bl-none max-w-[85%] sm:max-w-[70%] md:max-w-[60%]">
                   <div className="flex items-center space-x-2">
                     <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center">
                       <svg
@@ -223,15 +202,15 @@ export default function Home() {
                       </svg>
                     </div>
                     <div className="flex space-x-1">
-                      <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce"></div>
+                      <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" />
                       <div
                         className="w-2 h-2 rounded-full bg-gray-400 animate-bounce"
                         style={{ animationDelay: "0.2s" }}
-                      ></div>
+                      />
                       <div
                         className="w-2 h-2 rounded-full bg-gray-400 animate-bounce"
                         style={{ animationDelay: "0.4s" }}
-                      ></div>
+                      />
                     </div>
                   </div>
                 </div>
@@ -242,23 +221,22 @@ export default function Home() {
         )}
       </div>
 
-      {/* Input form */}
-      <div className="bg-white border-t border-gray-200 py-4 px-6 sticky bottom-0">
+      {/* Input */}
+      <div className="bg-white border-t border-gray-200 py-3 px-4 sm:py-4 sm:px-6 sticky bottom-0">
         <div className="max-w-4xl mx-auto">
-          <form onSubmit={handleSubmit} className="flex space-x-3">
+          <form onSubmit={handleSubmit} className="flex space-x-2 sm:space-x-3">
             <input
               ref={inputRef}
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Type your message..."
-              className="flex-1 border border-gray-300 rounded-full px-5 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent shadow-sm"
+              className="flex-1 border border-gray-300 rounded-full px-4 py-2 sm:px-5 sm:py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent shadow-sm text-sm sm:text-base"
               disabled={isLoading}
             />
-
             <button
               type="submit"
-              className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-5 py-3 rounded-full hover:from-blue-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 transition-all duration-200 shadow-md flex items-center justify-center"
+              className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-4 py-2 sm:px-5 sm:py-3 rounded-full hover:from-blue-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 transition-all duration-200 shadow-md flex items-center justify-center"
               disabled={isLoading || !input.trim()}
             >
               {isLoading ? (
@@ -278,7 +256,7 @@ export default function Home() {
                   <path
                     className="opacity-75"
                     fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
                   />
                 </svg>
               ) : (
