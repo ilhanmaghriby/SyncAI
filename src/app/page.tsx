@@ -12,7 +12,9 @@ export default function Home() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Inisialisasi Gemini dengan API Key
-  const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY!);
+  const genAI = new GoogleGenerativeAI(
+    "AIzaSyCHA_EC2KMCjfhzgQW90UjjQyUPKUlTS7s"
+  );
 
   const inputRef = useRef<HTMLInputElement>(null);
 
