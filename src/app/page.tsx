@@ -117,33 +117,36 @@ export default function Home() {
                 Ask me anything, from creative ideas to technical explanations.
               </p>
               <div className="grid grid-cols-1 gap-3 text-sm">
-                <div
-                  className="p-3 bg-white rounded-lg border border-gray-200 hover:border-indigo-300 cursor-pointer transition-colors shadow-xs"
-                  onClick={() =>
-                    handleExampleClick(
-                      "Explain quantum computing in simple terms"
-                    )
-                  }
-                >
-                  "Explain quantum computing in simple terms"
-                </div>
-                <div
-                  className="p-3 bg-white rounded-lg border border-gray-200 hover:border-indigo-300 cursor-pointer transition-colors shadow-xs"
-                  onClick={() =>
-                    handleExampleClick(
-                      "Suggest some team-building activities for remote teams"
-                    )
-                  }
-                >
-                  "Suggest some team-building activities for remote teams"
-                </div>
-                <div
-                  className="p-3 bg-white rounded-lg border border-gray-200 hover:border-indigo-300 cursor-pointer transition-colors shadow-xs"
-                  onClick={() =>
-                    handleExampleClick("Help me debug this Python code...")
-                  }
-                >
-                  "Help me debug this Python code..."
+                <div className="grid grid-cols-1 gap-3 text-sm">
+                  <div
+                    className="p-3 bg-white rounded-lg border border-gray-200 hover:border-indigo-300 cursor-pointer transition-colors shadow-xs"
+                    onClick={() =>
+                      handleExampleClick(
+                        "Explain quantum computing in simple terms"
+                      )
+                    }
+                  >
+                    &ldquo;Explain quantum computing in simple terms&rdquo;
+                  </div>
+                  <div
+                    className="p-3 bg-white rounded-lg border border-gray-200 hover:border-indigo-300 cursor-pointer transition-colors shadow-xs"
+                    onClick={() =>
+                      handleExampleClick(
+                        "Suggest some team-building activities for remote teams"
+                      )
+                    }
+                  >
+                    &ldquo;Suggest some team-building activities for remote
+                    teams&rdquo;
+                  </div>
+                  <div
+                    className="p-3 bg-white rounded-lg border border-gray-200 hover:border-indigo-300 cursor-pointer transition-colors shadow-xs"
+                    onClick={() =>
+                      handleExampleClick("Help me debug this Python code...")
+                    }
+                  >
+                    &ldquo;Help me debug this Python code...&rdquo;
+                  </div>
                 </div>
               </div>
             </div>
