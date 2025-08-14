@@ -1,65 +1,88 @@
 "use client";
-import { useState, useRef, useEffect } from "react";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import {
+  ChevronDown,
+  Loader2,
+  SendHorizonal,
+  Sparkles,
+  User as UserIcon,
+  Bot,
+} from "lucide-react";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export default function Home() {
   const [messages, setMessages] = useState<
-    Array<{ role: string; content: string }>
+    Array<{ role: "user" | "model"; content: string }>
   >([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [isAtBottom, setIsAtBottom] = useState(true);
+  const viewportRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const genAI = new GoogleGenerativeAI(
-    "AIzaSyCHA_EC2KMCjfhzgQW90UjjQyUPKUlTS7s"
+  const genAI = useMemo(
+    () => new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY || ""),
+    []
   );
+
+  // Example prompts
+  const examples = useMemo(
+    () => [
+      "Explain quantum computing in simple terms",
+      "Suggest some team-building activities for remote teams",
+      "Help me debug this Python code...",
+    ],
+    []
+  );
+
+  const scrollToBottom = (behavior: ScrollBehavior = "smooth") => {
+    viewportRef.current?.lastElementChild?.scrollIntoView({
+      behavior,
+      block: "end",
+    });
+  };
+
+  useEffect(() => {
+    if (isAtBottom) scrollToBottom("instant");
+  }, [messages, isAtBottom]);
+
+  const onScroll = () => {
+    if (!viewportRef.current) return;
+    const el = viewportRef.current;
+    const atBottom =
+      Math.abs(el.scrollHeight - el.scrollTop - el.clientHeight) < 8;
+    setIsAtBottom(atBottom);
+  };
 
   const handleExampleClick = (text: string) => {
     setInput(text);
     setTimeout(() => inputRef.current?.focus(), 0);
   };
 
-  const parseMarkdown = (text: string) => {
-    return text
-      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-      .replace(/\*(.*?)\*/g, "<em>$1</em>")
-      .replace(/`([^`]+)`/g, "<code>$1</code>")
-      .replace(/\n/g, "<br/>");
-  };
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim()) return;
+    const trimmed = input.trim();
+    if (!trimmed) return;
 
-    const userMessage = { role: "user", content: input };
+    const userMessage = { role: "user" as const, content: trimmed };
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
 
     try {
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-      const result = await model.generateContent([input]);
+      const result = await model.generateContent([trimmed]);
       const response = await result.response;
       const text = response.text();
       setMessages((prev) => [...prev, { role: "model", content: text }]);
-    } catch (error) {
-      console.error("Error:", error);
+    } catch (err) {
+      console.error(err);
       setMessages((prev) => [
         ...prev,
-        {
-          role: "model",
-          content: "Sorry, I encountered an error. Please try again.",
-        },
+        { role: "model", content: "Maaf, terjadi kesalahan. Coba lagi ya." },
       ]);
     } finally {
       setIsLoading(false);
@@ -67,217 +90,205 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex flex-col">
       {/* Header */}
-      <header className="bg-white shadow-sm py-3 px-4 sm:py-4 sm:px-6 sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto flex items-center">
-          <div className="w-10 h-10 mr-3">
-            <Image
-              src="/logo.png"
-              alt="Logo"
-              width={100}
-              height={100}
-              className="object-contain rounded-full bg-white p-1 shadow-md"
-            />
-          </div>
-          <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-800">
-              SyncAI
-            </h1>
-            <p className="text-xs text-gray-500">Powered by Gemini</p>
+      <header className="sticky top-0 z-20 backdrop-blur supports-[backdrop-filter]:bg-white/70 bg-white/90 border-b border-slate-200/70">
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-2xl overflow-hidden ring-1 ring-slate-200 shadow-sm">
+              <Image
+                src="/logo.png"
+                alt="Logo"
+                fill
+                className="object-contain bg-white"
+              />
+            </div>
+            <div>
+              <h1 className="text-lg sm:text-xl font-semibold tracking-tight text-slate-900 flex items-center gap-2">
+                SyncAI <Sparkles className="h-4 w-4 text-indigo-500" />
+              </h1>
+              <p className="text-[11px] sm:text-xs text-slate-500">
+                Powered by Gemini
+              </p>
+            </div>
           </div>
         </div>
       </header>
 
-      {/* Chat container */}
-      <div className="flex-1 overflow-y-auto p-4  max-w-4xl w-full mx-auto">
-        {messages.length === 0 ? (
-          <div className="flex items-center justify-center text-gray-500">
-            <div className="text-center max-w-md p-6 sm:p-8 rounded-xl bg-white/70 backdrop-blur-sm border border-gray-200 shadow-sm">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-6 rounded-full bg-gradient-to-r from-blue-100 to-indigo-100 flex items-center justify-center shadow-inner">
-                <svg
-                  className="h-8 w-8 sm:h-10 sm:w-10 text-indigo-500"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={1.5}
-                    d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
-                  />
-                </svg>
-              </div>
-              <h2 className="text-xl sm:text-2xl font-bold mb-3 text-gray-800">
-                Welcome to SyncAI
-              </h2>
-              <p className="text-gray-600 mb-6 text-sm">
-                Ask me anything, from creative ideas to technical explanations.
-              </p>
-              <div className="grid grid-cols-1  gap-3 text-sm">
-                {[
-                  "Explain quantum computing in simple terms",
-                  "Suggest some team-building activities for remote teams",
-                  "Help me debug this Python code...",
-                ].map((example, i) => (
-                  <div
-                    key={i}
-                    className="p-3 bg-white rounded-lg border border-gray-200 hover:border-indigo-300 cursor-pointer transition-colors shadow-xs"
-                    onClick={() => handleExampleClick(example)}
-                  >
-                    &ldquo;{example}&rdquo;
+      {/* Chat viewport */}
+      <main className="flex-1">
+        <div
+          ref={viewportRef}
+          onScroll={onScroll}
+          className="mx-auto max-w-4xl px-3 sm:px-6 py-4 sm:py-6 h-[calc(100vh-164px)] overflow-y-auto scroll-smooth"
+        >
+          {messages.length === 0 ? (
+            <EmptyState onPick={handleExampleClick} examples={examples} />
+          ) : (
+            <div className="space-y-3 sm:space-y-4">
+              {messages.map((m, i) => (
+                <MessageBubble key={i} role={m.role}>
+                  <div className="prose prose-slate max-w-none prose-p:leading-relaxed prose-pre:bg-slate-900 prose-pre:text-slate-100 prose-pre:rounded-xl prose-pre:p-3 prose-code:px-1 prose-code:py-0.5 prose-code:bg-slate-100 prose-code:rounded">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {m.content}
+                    </ReactMarkdown>
                   </div>
-                ))}
+                </MessageBubble>
+              ))}
+
+              {isLoading && (
+                <MessageBubble role="model">
+                  <div className="flex items-center gap-2 text-slate-500">
+                    <span className="sr-only">Model is typing</span>
+                    <span className="inline-flex gap-1">
+                      <Dot />
+                      <Dot className="[animation-delay:120ms]" />
+                      <Dot className="[animation-delay:240ms]" />
+                    </span>
+                  </div>
+                </MessageBubble>
+              )}
+
+              {/* Scroll anchor */}
+              <div />
+            </div>
+          )}
+        </div>
+      </main>
+
+      {/* Sticky composer */}
+      <footer className="sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 backdrop-blur">
+        <div className="mx-auto max-w-4xl px-3 sm:px-6 py-3 sm:py-4">
+          <form
+            onSubmit={handleSubmit}
+            className="flex items-end gap-2 sm:gap-3"
+          >
+            <div className="relative flex-1">
+              <input
+                ref={inputRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Write your message..."
+                className="w-full rounded-2xl sm:rounded-3xl border border-slate-200 bg-white px-4 sm:px-5 py-2.5 sm:py-3 pr-12 shadow-sm outline-none ring-0 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 text-[15px] text-slate-800 placeholder:text-slate-400"
+                disabled={isLoading}
+                type="text"
+              />
+              <div className="pointer-events-none absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 text-slate-300">
+                <SendHorizonal className="h-5 w-5" />
               </div>
             </div>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {messages.map((message, index) => (
-              <div
-                key={index}
-                className={`flex ${
-                  message.role === "user" ? "justify-end" : "justify-start"
-                }`}
-              >
-                <div
-                  className={`rounded-xl px-4 py-3 ${
-                    message.role === "user"
-                      ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-br-none"
-                      : "bg-white text-gray-800 shadow-sm rounded-bl-none"
-                  } max-w-[85%] sm:max-w-[70%] md:max-w-[60%]`}
-                >
-                  {message.role === "model" && (
-                    <div className="flex items-center mb-1">
-                      <div className="w-6 h-6 rounded-full bg-indigo-100 mr-2 flex items-center justify-center">
-                        <svg
-                          className="h-4 w-4 text-indigo-500"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                          />
-                        </svg>
-                      </div>
-                      <span className="text-xs font-medium text-indigo-600">
-                        SyncAI
-                      </span>
-                    </div>
-                  )}
-                  <div
-                    className="whitespace-pre-wrap"
-                    dangerouslySetInnerHTML={{
-                      __html:
-                        message.role === "model"
-                          ? parseMarkdown(message.content)
-                          : message.content,
-                    }}
-                  />
-                </div>
-              </div>
-            ))}
-            {isLoading && (
-              <div className="flex justify-start">
-                <div className="bg-white text-gray-800 rounded-xl px-4 py-3 shadow-sm rounded-bl-none max-w-[85%] sm:max-w-[70%] md:max-w-[60%]">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center">
-                      <svg
-                        className="h-4 w-4 text-indigo-500"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                        />
-                      </svg>
-                    </div>
-                    <div className="flex space-x-1">
-                      <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" />
-                      <div
-                        className="w-2 h-2 rounded-full bg-gray-400 animate-bounce"
-                        style={{ animationDelay: "0.2s" }}
-                      />
-                      <div
-                        className="w-2 h-2 rounded-full bg-gray-400 animate-bounce"
-                        style={{ animationDelay: "0.4s" }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
-        )}
-      </div>
-
-      {/* Input */}
-      <div className="bg-white border-t border-gray-200 py-3 px-4 sm:py-4 sm:px-6 sticky bottom-0">
-        <div className="max-w-4xl mx-auto">
-          <form onSubmit={handleSubmit} className="flex space-x-2 sm:space-x-3">
-            <input
-              ref={inputRef}
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Type your message..."
-              className="flex-1 border border-gray-300 rounded-full px-4 py-2 sm:px-5 sm:py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent shadow-sm text-sm sm:text-base"
-              disabled={isLoading}
-            />
             <button
               type="submit"
-              className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-4 py-2 sm:px-5 sm:py-3 rounded-full hover:from-blue-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 transition-all duration-200 shadow-md flex items-center justify-center"
               disabled={isLoading || !input.trim()}
+              className="inline-flex items-center justify-center gap-2 rounded-2xl sm:rounded-full bg-gradient-to-r from-indigo-500 to-blue-600 text-white px-4 sm:px-5 py-2.5 sm:py-3 text-sm font-medium shadow-md hover:from-indigo-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2"
             >
               {isLoading ? (
-                <svg
-                  className="animate-spin h-5 w-5 text-white"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                  />
-                </svg>
+                <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z"
-                    clipRule="evenodd"
-                  />
-                </svg>
+                <SendHorizonal className="h-4 w-4" />
               )}
+              <span className="hidden sm:inline">Kirim</span>
             </button>
           </form>
-          <p className="text-xs text-gray-500 mt-2 text-center">
-            SyncAI can make mistakes. Consider checking important information.
+          <p className="mt-2 text-center text-[11px] text-slate-500">
+            SyncAI may be mistaken. Check important info before use.
           </p>
+        </div>
+
+        {!isAtBottom && (
+          <button
+            onClick={() => scrollToBottom("smooth")}
+            className="absolute left-1/2 -translate-x-1/2 -top-4 inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white/90 px-3 py-1 text-xs text-slate-600 shadow-sm hover:bg-white"
+          >
+            <ChevronDown className="h-4 w-4" />
+            Scroll down
+          </button>
+        )}
+      </footer>
+    </div>
+  );
+}
+
+function MessageBubble({
+  role,
+  children,
+}: {
+  role: "user" | "model";
+  children: React.ReactNode;
+}) {
+  const isUser = role === "user";
+  return (
+    <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
+      <div
+        className={`flex max-w-[85%] sm:max-w-[70%] md:max-w-[60%] items-start gap-2 sm:gap-3 ${
+          isUser ? "flex-row-reverse" : ""
+        }`}
+      >
+        <div
+          className={`mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full ring-1 ${
+            isUser
+              ? "bg-gradient-to-br from-indigo-500 to-blue-600 text-white ring-indigo-200"
+              : "bg-indigo-50 text-indigo-600 ring-indigo-100"
+          }`}
+        >
+          {isUser ? (
+            <UserIcon className="h-4 w-4" />
+          ) : (
+            <Bot className="h-4 w-4" />
+          )}
+        </div>
+        <div
+          className={`rounded-2xl px-3.5 sm:px-4 py-2.5 sm:py-3 shadow-sm ${
+            isUser
+              ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-br-sm"
+              : "bg-white text-slate-800 rounded-bl-sm border border-slate-200"
+          }`}
+        >
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Dot({ className = "" }: { className?: string }) {
+  return (
+    <span
+      className={`inline-block h-2 w-2 rounded-full bg-slate-400 animate-bounce ${className}`}
+    />
+  );
+}
+
+function EmptyState({
+  onPick,
+  examples,
+}: {
+  onPick: (t: string) => void;
+  examples: string[];
+}) {
+  return (
+    <div className="flex h-full items-center justify-center">
+      <div className="w-full max-w-xl rounded-3xl border border-slate-200 bg-white/80 backdrop-blur p-6 sm:p-8 shadow-sm">
+        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-50 to-blue-50 ring-1 ring-slate-200">
+          <Sparkles className="h-7 w-7 text-indigo-500" />
+        </div>
+        <h2 className="text-center text-2xl font-semibold tracking-tight text-slate-900">
+          Welcome to SyncAI
+        </h2>
+        <p className="mt-2 text-center text-sm text-slate-600">
+          Ask anything - from creative ideas to technical explanations.
+        </p>
+
+        <div className="mt-6 grid grid-cols-1 gap-2.5 text-sm">
+          {examples.map((e, i) => (
+            <button
+              key={i}
+              onClick={() => onPick(e)}
+              className="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-left shadow-sm transition hover:border-indigo-300"
+            >
+              &ldquo;{e}&rdquo;
+            </button>
+          ))}
         </div>
       </div>
     </div>
