@@ -187,7 +187,7 @@ export default function Home() {
               ) : (
                 <SendHorizonal className="h-4 w-4" />
               )}
-              <span className="hidden sm:inline">Kirim</span>
+              <span className="hidden sm:inline">Send</span>
             </button>
           </form>
           <p className="mt-2 text-center text-[11px] text-slate-500">
